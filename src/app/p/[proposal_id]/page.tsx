@@ -3,36 +3,17 @@ import SigningWidget from "./SigningWidget";
 
 const API_BASE = "https://api.serviceengine.xyz";
 
-interface ProposalItem {
-  id: string;
-  name: string;
-  description: string | null;
-  price: string;
-  service_id: string | null;
-  created_at: string;
-}
-
 interface Proposal {
   id: string;
-  client_email: string;
+  org_name: string;
   client_name: string;
-  client_name_f: string;
-  client_name_l: string;
   client_company: string | null;
+  client_email: string;
   status: string;
-  status_id: number;
   total: string;
-  notes: string | null;
-  created_at: string;
-  updated_at: string;
-  sent_at: string | null;
-  signed_at: string | null;
-  converted_order_id: string | null;
-  converted_engagement_id: string | null;
-  items: ProposalItem[];
-  pdf_url?: string | null;
-  signing_token?: string | null;
-  is_signed?: boolean;
+  signing_token: string | null;
+  is_signed: boolean;
+  pdf_url: string | null;
 }
 
 async function getProposal(proposalId: string): Promise<Proposal | null> {
@@ -51,22 +32,6 @@ async function getProposal(proposalId: string): Promise<Proposal | null> {
   }
 }
 
-function formatCurrency(amount: string): string {
-  const num = parseFloat(amount);
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(num);
-}
-
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
-
 export default async function ProposalPage({
   params,
 }: {
@@ -81,98 +46,18 @@ export default async function ProposalPage({
 
   return (
     <main className="min-h-screen bg-black text-white">
-      <div className="max-w-3xl mx-auto px-6 py-12">
+      <div className="max-w-4xl mx-auto px-6 py-12">
         {/* Header */}
-        <div className="mb-12">
-          <h1 className="text-3xl font-semibold mb-2">Proposal</h1>
+        <div className="mb-8">
+          <p className="text-gray-500 text-sm mb-1">{proposal.org_name}</p>
+          <h1 className="text-2xl font-semibold mb-1">Proposal</h1>
           <p className="text-gray-400">
             For {proposal.client_name}
             {proposal.client_company && ` at ${proposal.client_company}`}
           </p>
-          {proposal.sent_at && (
-            <p className="text-gray-500 text-sm mt-1">
-              {formatDate(proposal.sent_at)}
-            </p>
-          )}
         </div>
 
-        {/* Line Items */}
-        <div className="border border-gray-800 rounded-lg overflow-hidden mb-8">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-800 bg-gray-900/50">
-                <th className="text-left px-6 py-4 text-sm font-medium text-gray-400">
-                  Item
-                </th>
-                <th className="text-right px-6 py-4 text-sm font-medium text-gray-400">
-                  Price
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {proposal.items.map((item) => (
-                <tr key={item.id} className="border-b border-gray-800 last:border-0">
-                  <td className="px-6 py-4">
-                    <div className="font-medium">{item.name}</div>
-                    {item.description && (
-                      <div className="text-sm text-gray-400 mt-1">
-                        {item.description}
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-right whitespace-nowrap">
-                    {formatCurrency(item.price)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Total */}
-        <div className="flex justify-between items-center py-4 border-t border-gray-800">
-          <span className="text-lg font-medium">Total</span>
-          <span className="text-2xl font-semibold">
-            {formatCurrency(proposal.total)}
-          </span>
-        </div>
-
-        {/* Notes */}
-        {proposal.notes && (
-          <div className="mt-8 p-6 bg-gray-900/50 rounded-lg">
-            <h2 className="text-sm font-medium text-gray-400 mb-2">Notes</h2>
-            <p className="text-gray-300 whitespace-pre-wrap">{proposal.notes}</p>
-          </div>
-        )}
-
-        {/* PDF Download */}
-        {proposal.pdf_url && (
-          <div className="mt-8">
-            <a
-              href={proposal.pdf_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
-              Download PDF
-            </a>
-          </div>
-        )}
-
-        {/* Signing Widget */}
+        {/* Signing Widget - displays PDF and handles signing */}
         {proposal.signing_token && !proposal.is_signed && (
           <SigningWidget
             token={proposal.signing_token}
@@ -182,8 +67,35 @@ export default async function ProposalPage({
 
         {/* Already Signed */}
         {proposal.is_signed && (
-          <div className="mt-12 p-6 bg-green-900/20 border border-green-800 rounded-lg">
-            <p className="text-green-400 font-medium">This proposal has been signed.</p>
+          <div className="p-8 bg-green-900/20 border border-green-800 rounded-lg text-center">
+            <svg
+              className="w-12 h-12 text-green-400 mx-auto mb-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <p className="text-green-400 font-medium text-lg">
+              This proposal has been signed.
+            </p>
+            <p className="text-gray-400 text-sm mt-2">
+              Thank you for your business.
+            </p>
+          </div>
+        )}
+
+        {/* No signing token and not signed - proposal not ready */}
+        {!proposal.signing_token && !proposal.is_signed && (
+          <div className="p-8 bg-gray-900/50 border border-gray-800 rounded-lg text-center">
+            <p className="text-gray-400">
+              This proposal is being prepared. Please check back shortly.
+            </p>
           </div>
         )}
       </div>
