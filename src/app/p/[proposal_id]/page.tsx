@@ -1,6 +1,5 @@
-import { notFound } from "next/navigation";
-
-const API_BASE = "https://api.serviceengine.xyz";
+// TODO: Replace mock data with API call once backend is ready
+// const API_BASE = "https://api.serviceengine.xyz";
 
 interface ProposalItem {
   id: string;
@@ -31,21 +30,51 @@ interface Proposal {
   items: ProposalItem[];
 }
 
-async function getProposal(proposalId: string): Promise<Proposal | null> {
-  try {
-    const res = await fetch(`${API_BASE}/api/public/proposals/${proposalId}`, {
-      cache: "no-store",
-    });
-
-    if (!res.ok) {
-      return null;
-    }
-
-    return res.json();
-  } catch {
-    return null;
-  }
-}
+// Mock data for design iteration
+const MOCK_PROPOSAL: Proposal = {
+  id: "d0e3619d-daa1-4ece-b234-9ba6ba3332ef",
+  client_email: "sarah@acmecorp.com",
+  client_name: "Sarah Chen",
+  client_name_f: "Sarah",
+  client_name_l: "Chen",
+  client_company: "Acme Corporation",
+  status: "Sent",
+  status_id: 2,
+  total: "12500.00",
+  notes: "This proposal includes all development work for the initial MVP launch. Payment terms: 50% upfront, 50% on completion.",
+  created_at: "2026-02-01T10:00:00Z",
+  updated_at: "2026-02-05T14:30:00Z",
+  sent_at: "2026-02-05T14:30:00Z",
+  signed_at: null,
+  converted_order_id: null,
+  converted_engagement_id: null,
+  items: [
+    {
+      id: "item-1",
+      name: "Discovery & Strategy",
+      description: "Initial research, stakeholder interviews, and strategic planning documentation",
+      price: "2500.00",
+      service_id: null,
+      created_at: "2026-02-01T10:00:00Z",
+    },
+    {
+      id: "item-2",
+      name: "UI/UX Design",
+      description: "Wireframes, high-fidelity mockups, and interactive prototype",
+      price: "4000.00",
+      service_id: null,
+      created_at: "2026-02-01T10:00:00Z",
+    },
+    {
+      id: "item-3",
+      name: "Frontend Development",
+      description: "React application with responsive design and animations",
+      price: "6000.00",
+      service_id: null,
+      created_at: "2026-02-01T10:00:00Z",
+    },
+  ],
+};
 
 function formatCurrency(amount: string): string {
   const num = parseFloat(amount);
@@ -69,11 +98,13 @@ export default async function ProposalPage({
   params: Promise<{ proposal_id: string }>;
 }) {
   const { proposal_id } = await params;
-  const proposal = await getProposal(proposal_id);
 
-  if (!proposal) {
-    notFound();
-  }
+  // TODO: Replace with actual API call
+  // const proposal = await getProposal(proposal_id);
+  const proposal = MOCK_PROPOSAL;
+
+  // Use the proposal_id to show it's being captured (for debugging)
+  console.log("Proposal ID:", proposal_id);
 
   return (
     <main className="min-h-screen bg-black text-white">
