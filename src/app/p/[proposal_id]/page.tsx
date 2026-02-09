@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import SignatureSection from "./SignatureSection";
-import TermsModal from "./TermsModal";
+import Link from "next/link";
 
 const API_BASE = "https://api.serviceengine.xyz";
 
@@ -145,8 +145,15 @@ export default async function ProposalPage({
           <div className="px-10 py-8 border-t border-[#1a1a1a]">
             <p className="text-white/40 text-xs leading-relaxed">
               By signing below, you agree to the scope of work and investment outlined
-              in this proposal and our <TermsModal />. Payment terms: 50% due upon signing,
-              50% due upon completion.
+              in this proposal and our{" "}
+              <Link
+                href="/terms"
+                target="_blank"
+                className="underline hover:text-white/60 transition-colors"
+              >
+                Terms of Service
+              </Link>
+              .
             </p>
           </div>
 
