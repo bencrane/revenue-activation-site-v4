@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import SigningWidget from "./SigningWidget";
 
 const API_BASE = "https://api.serviceengine.xyz";
 
@@ -31,6 +32,7 @@ interface Proposal {
   items: ProposalItem[];
   pdf_url?: string | null;
   signing_token?: string | null;
+  is_signed?: boolean;
 }
 
 async function getProposal(proposalId: string): Promise<Proposal | null> {
@@ -167,6 +169,21 @@ export default async function ProposalPage({
               </svg>
               Download PDF
             </a>
+          </div>
+        )}
+
+        {/* Signing Widget */}
+        {proposal.signing_token && !proposal.is_signed && (
+          <SigningWidget
+            token={proposal.signing_token}
+            clientName={proposal.client_name}
+          />
+        )}
+
+        {/* Already Signed */}
+        {proposal.is_signed && (
+          <div className="mt-12 p-6 bg-green-900/20 border border-green-800 rounded-lg">
+            <p className="text-green-400 font-medium">This proposal has been signed.</p>
           </div>
         )}
       </div>
