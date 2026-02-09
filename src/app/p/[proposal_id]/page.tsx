@@ -1,5 +1,6 @@
-// TODO: Replace mock data with API call once backend is ready
-// const API_BASE = "https://api.serviceengine.xyz";
+import { notFound } from "next/navigation";
+
+const API_BASE = "https://api.serviceengine.xyz";
 
 interface ProposalItem {
   id: string;
@@ -28,53 +29,25 @@ interface Proposal {
   converted_order_id: string | null;
   converted_engagement_id: string | null;
   items: ProposalItem[];
+  pdf_url?: string | null;
+  signing_token?: string | null;
 }
 
-// Mock data for design iteration
-const MOCK_PROPOSAL: Proposal = {
-  id: "d0e3619d-daa1-4ece-b234-9ba6ba3332ef",
-  client_email: "sarah@acmecorp.com",
-  client_name: "Sarah Chen",
-  client_name_f: "Sarah",
-  client_name_l: "Chen",
-  client_company: "Acme Corporation",
-  status: "Sent",
-  status_id: 2,
-  total: "12500.00",
-  notes: "This proposal includes all development work for the initial MVP launch. Payment terms: 50% upfront, 50% on completion.",
-  created_at: "2026-02-01T10:00:00Z",
-  updated_at: "2026-02-05T14:30:00Z",
-  sent_at: "2026-02-05T14:30:00Z",
-  signed_at: null,
-  converted_order_id: null,
-  converted_engagement_id: null,
-  items: [
-    {
-      id: "item-1",
-      name: "Discovery & Strategy",
-      description: "Initial research, stakeholder interviews, and strategic planning documentation",
-      price: "2500.00",
-      service_id: null,
-      created_at: "2026-02-01T10:00:00Z",
-    },
-    {
-      id: "item-2",
-      name: "UI/UX Design",
-      description: "Wireframes, high-fidelity mockups, and interactive prototype",
-      price: "4000.00",
-      service_id: null,
-      created_at: "2026-02-01T10:00:00Z",
-    },
-    {
-      id: "item-3",
-      name: "Frontend Development",
-      description: "React application with responsive design and animations",
-      price: "6000.00",
-      service_id: null,
-      created_at: "2026-02-01T10:00:00Z",
-    },
-  ],
-};
+async function getProposal(proposalId: string): Promise<Proposal | null> {
+  try {
+    const res = await fetch(`${API_BASE}/api/public/proposals/${proposalId}`, {
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      return null;
+    }
+
+    return res.json();
+  } catch {
+    return null;
+  }
+}
 
 function formatCurrency(amount: string): string {
   const num = parseFloat(amount);
@@ -98,13 +71,11 @@ export default async function ProposalPage({
   params: Promise<{ proposal_id: string }>;
 }) {
   const { proposal_id } = await params;
+  const proposal = await getProposal(proposal_id);
 
-  // TODO: Replace with actual API call
-  // const proposal = await getProposal(proposal_id);
-  const proposal = MOCK_PROPOSAL;
-
-  // Use the proposal_id to show it's being captured (for debugging)
-  console.log("Proposal ID:", proposal_id);
+  if (!proposal) {
+    notFound();
+  }
 
   return (
     <main className="min-h-screen bg-black text-white">
@@ -117,23 +88,8 @@ export default async function ProposalPage({
             {proposal.client_company && ` at ${proposal.client_company}`}
           </p>
           <p className="text-gray-500 text-sm mt-1">
-            Created {formatDate(proposal.created_at)}
+            {formatDate(proposal.created_at)}
           </p>
-        </div>
-
-        {/* Status Badge */}
-        <div className="mb-8">
-          <span
-            className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-              proposal.status === "Signed"
-                ? "bg-green-900/50 text-green-400"
-                : proposal.status === "Sent"
-                  ? "bg-blue-900/50 text-blue-400"
-                  : "bg-gray-800 text-gray-400"
-            }`}
-          >
-            {proposal.status}
-          </span>
         </div>
 
         {/* Line Items */}
@@ -182,6 +138,33 @@ export default async function ProposalPage({
           <div className="mt-8 p-6 bg-gray-900/50 rounded-lg">
             <h2 className="text-sm font-medium text-gray-400 mb-2">Notes</h2>
             <p className="text-gray-300 whitespace-pre-wrap">{proposal.notes}</p>
+          </div>
+        )}
+
+        {/* PDF Download */}
+        {proposal.pdf_url && (
+          <div className="mt-8">
+            <a
+              href={proposal.pdf_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              Download PDF
+            </a>
           </div>
         )}
       </div>
