@@ -80,28 +80,16 @@ export default async function ProposalPage({
         <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg overflow-hidden shadow-2xl">
           {/* Header */}
           <div className="px-10 pt-10 pb-8 border-b border-[#1a1a1a]">
-            {/* Top row: Org name left, Date right */}
-            <div className="flex justify-between items-center mb-8">
-              <div className="text-white/40 text-xs tracking-widest uppercase">
-                {proposal.org_name}
-              </div>
-              {proposal.sent_at && (
-                <div className="text-white/30 text-sm">
-                  {formatDate(proposal.sent_at)}
-                </div>
-              )}
+            <div className="text-white/40 text-xs tracking-widest uppercase mb-8">
+              {proposal.org_name}
             </div>
 
-            {/* Title and client */}
-            <h1 className="text-3xl font-light text-white mb-3">Proposal</h1>
+            {/* Title with company name */}
+            <h1 className="text-3xl font-light text-white mb-3">
+              Proposal for {proposal.client_company || proposal.client_name}
+            </h1>
             <div className="text-white/50">
-              <span className="text-white/70">{proposal.client_name}</span>
-              {proposal.client_company && (
-                <>
-                  <span className="mx-2">·</span>
-                  <span>{proposal.client_company}</span>
-                </>
-              )}
+              {proposal.client_name}
             </div>
           </div>
 
@@ -196,9 +184,14 @@ export default async function ProposalPage({
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-8">
+        <div className="flex justify-between items-center mt-8 px-2">
+          {proposal.sent_at && (
+            <p className="text-white/20 text-xs">
+              {formatDate(proposal.sent_at)}
+            </p>
+          )}
           <p className="text-white/20 text-xs">
-            Powered by {proposal.org_name}
+            {proposal.org_name}
           </p>
         </div>
       </div>
