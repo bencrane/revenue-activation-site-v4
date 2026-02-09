@@ -87,9 +87,11 @@ export default async function ProposalPage({
             For {proposal.client_name}
             {proposal.client_company && ` at ${proposal.client_company}`}
           </p>
-          <p className="text-gray-500 text-sm mt-1">
-            {formatDate(proposal.created_at)}
-          </p>
+          {proposal.sent_at && (
+            <p className="text-gray-500 text-sm mt-1">
+              {formatDate(proposal.sent_at)}
+            </p>
+          )}
         </div>
 
         {/* Line Items */}
