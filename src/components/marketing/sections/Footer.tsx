@@ -20,6 +20,13 @@ export function Footer() {
             >
               Terms of Service
             </a>
+            <a
+              href="/privacy"
+              target="_blank"
+              className="hover:text-text-secondary transition-colors"
+            >
+              Privacy Policy
+            </a>
           </div>
         </div>
       </Container>
