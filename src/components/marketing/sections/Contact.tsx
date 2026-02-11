@@ -10,10 +10,10 @@ export function Contact() {
           </Heading>
           
           <a
-            href="mailto:hello@revenueactivation.com"
+            href="mailto:team@revenueactivation.com"
             className="group inline-flex items-center gap-4 text-2xl md:text-3xl font-medium text-primary hover:text-primary-light transition-colors duration-200"
           >
-            hello@revenueactivation.com
+            team@revenueactivation.com
             <svg
               className="w-6 h-6 transition-transform duration-200 group-hover:translate-x-2"
               fill="none"
