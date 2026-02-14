@@ -65,6 +65,17 @@ export default function SignatureSection({ proposalId, clientName, clientEmail }
 
     // Capture HTML with signed state visible
     const signedHtml = document.documentElement.outerHTML;
+    console.log("signed_html length:", signedHtml?.length);
+    console.log("signed_html preview:", signedHtml?.substring(0, 200));
+
+    const requestBody = {
+      signature: signatureData,
+      signer_name: clientName,
+      signer_email: clientEmail,
+      signed_html: signedHtml,
+    };
+    console.log("Request body keys:", Object.keys(requestBody));
+    console.log("signed_html in body?", "signed_html" in requestBody, typeof requestBody.signed_html);
 
     try {
       const res = await fetch(
@@ -74,12 +85,7 @@ export default function SignatureSection({ proposalId, clientName, clientEmail }
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            signature: signatureData,
-            signer_name: clientName,
-            signer_email: clientEmail,
-            signed_html: signedHtml,
-          }),
+          body: JSON.stringify(requestBody),
         }
       );
 
