@@ -47,6 +47,28 @@ export default function SignatureSection({ proposalId, clientName, clientEmail }
     setIsEmpty(true);
   };
 
+  /**
+   * Captures a clean HTML snapshot of the current page for PDF generation.
+   * Strips scripts, prefetch links, and Next.js internals to keep the
+   * payload small (scripts alone are typically 1-3MB and useless for PDF).
+   */
+  const captureCleanHtml = (): string => {
+    const clone = document.documentElement.cloneNode(true) as HTMLElement;
+
+    // Remove all <script> tags — not needed for PDF, saves 1-3MB
+    clone.querySelectorAll("script").forEach((el) => el.remove());
+
+    // Remove prefetch/preload/modulepreload links (browser-only perf hints)
+    clone
+      .querySelectorAll('link[rel="prefetch"], link[rel="preload"], link[rel="modulepreload"]')
+      .forEach((el) => el.remove());
+
+    // Remove Next.js internal elements
+    clone.querySelectorAll("next-route-announcer").forEach((el) => el.remove());
+
+    return `<!DOCTYPE html>${clone.outerHTML}`;
+  };
+
   const handleSign = async () => {
     if (!signaturePadRef.current || signaturePadRef.current.isEmpty()) {
       return;
@@ -57,47 +79,48 @@ export default function SignatureSection({ proposalId, clientName, clientEmail }
     // Capture signature data BEFORE any state changes
     const signatureData = signaturePadRef.current.toDataURL("image/png");
 
-    // Update UI to signed state before capturing HTML
+    // Update UI to show signed state
     setIsSigned(true);
 
-    // Wait for React to render the signed state
-    await new Promise(resolve => setTimeout(resolve, 150));
+    // Wait for React to commit the signed-state render to the DOM
+    await new Promise((resolve) => setTimeout(resolve, 200));
 
-    // Capture HTML with signed state visible
-    const signedHtml = document.documentElement.outerHTML;
-    console.log("signed_html length:", signedHtml?.length);
-    console.log("signed_html preview:", signedHtml?.substring(0, 200));
+    // Capture clean page HTML (scripts stripped for PDF generation)
+    const signedHtml = captureCleanHtml();
 
-    const requestBody = {
+    const bodyBytes = new Blob([JSON.stringify({
       signature: signatureData,
       signer_name: clientName,
       signer_email: clientEmail,
       signed_html: signedHtml,
-    };
-    console.log("Request body keys:", Object.keys(requestBody));
-    console.log("signed_html in body?", "signed_html" in requestBody, typeof requestBody.signed_html);
+    })]).size;
+    console.log(`[sign] signed_html: ${signedHtml.length} chars, body: ${(bodyBytes / 1024).toFixed(0)} KB`);
 
     try {
       const res = await fetch(
         `https://api.serviceengine.xyz/api/public/proposals/${proposalId}/sign`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(requestBody),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            signature: signatureData,
+            signer_name: clientName,
+            signer_email: clientEmail,
+            signed_html: signedHtml,
+          }),
         }
       );
 
+      const data = await res.json();
+      console.log("[sign] response:", { pdf_status: data.pdf_status, has_pdf: !!data.signed_pdf_url });
+
       if (!res.ok) {
+        console.error("[sign] API error:", data);
         setIsSigned(false);
         setIsSubmitting(false);
         alert("Failed to sign. Please try again.");
         return;
       }
-
-      const data = await res.json();
-      console.log("Sign response:", data);
 
       // Redirect to Stripe checkout if URL is returned
       if (data.checkout_url) {
@@ -105,7 +128,7 @@ export default function SignatureSection({ proposalId, clientName, clientEmail }
       }
       // Otherwise stay in signed state
     } catch (error) {
-      console.error("Signing error:", error);
+      console.error("[sign] network error:", error);
       setIsSigned(false);
       setIsSubmitting(false);
       alert("Failed to sign. Please try again.");
