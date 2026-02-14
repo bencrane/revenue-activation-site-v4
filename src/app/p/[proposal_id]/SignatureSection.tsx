@@ -85,16 +85,13 @@ export default function SignatureSection({ proposalId, clientName, clientEmail }
     // Wait for React to commit the signed-state render to the DOM
     await new Promise((resolve) => setTimeout(resolve, 200));
 
-    // Capture clean page HTML (scripts stripped for PDF generation)
-    const signedHtml = captureCleanHtml();
-
-    const bodyBytes = new Blob([JSON.stringify({
+    // TODO: Re-add signed_html once baseline signing is confirmed working
+    const requestBody = {
       signature: signatureData,
       signer_name: clientName,
       signer_email: clientEmail,
-      signed_html: signedHtml,
-    })]).size;
-    console.log(`[sign] signed_html: ${signedHtml.length} chars, body: ${(bodyBytes / 1024).toFixed(0)} KB`);
+    };
+    console.log("[sign] sending:", { ...requestBody, signature: requestBody.signature.substring(0, 40) + "..." });
 
     try {
       const res = await fetch(
@@ -102,12 +99,7 @@ export default function SignatureSection({ proposalId, clientName, clientEmail }
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            signature: signatureData,
-            signer_name: clientName,
-            signer_email: clientEmail,
-            signed_html: signedHtml,
-          }),
+          body: JSON.stringify(requestBody),
         }
       );
 
