@@ -14,9 +14,9 @@ interface ProposalItem {
 interface Proposal {
   id: string;
   org_name: string;
-  client_name: string;
-  client_company: string | null;
-  client_email: string;
+  contact_name: string;
+  account_name: string | null;
+  contact_email: string;
   status: string;
   total: string;
   notes: string | null;
@@ -86,10 +86,10 @@ export default async function ProposalPage({
 
             {/* Title with company name */}
             <h1 className="text-3xl font-light text-white mb-3">
-              Proposal for {proposal.client_company || proposal.client_name}
+              Proposal for {proposal.account_name || proposal.contact_name}
             </h1>
             <div className="text-white/50">
-              {proposal.client_name}
+              {proposal.contact_name}
             </div>
           </div>
 
@@ -161,8 +161,8 @@ export default async function ProposalPage({
           {!proposal.is_signed && (
             <SignatureSection
               proposalId={proposal_id}
-              clientName={proposal.client_name}
-              clientEmail={proposal.client_email}
+              clientName={proposal.contact_name}
+              clientEmail={proposal.contact_email}
             />
           )}
 
