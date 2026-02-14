@@ -119,10 +119,9 @@ export default function SignatureSection({ proposalId, clientName, clientEmail }
         return;
       }
 
-      // TODO: Re-enable Stripe redirect once PDF generation is confirmed
-      // if (data.checkout_url) {
-      //   window.location.href = data.checkout_url;
-      // }
+      if (data.checkout_url) {
+        window.location.href = data.checkout_url;
+      }
     } catch (error) {
       console.error("[sign] network error:", error);
       setIsSigned(false);
