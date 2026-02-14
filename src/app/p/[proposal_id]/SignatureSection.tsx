@@ -112,7 +112,12 @@ export default function SignatureSection({ proposalId, clientName, clientEmail }
       );
 
       const data = await res.json();
-      console.log("[sign] response:", { pdf_status: data.pdf_status, has_pdf: !!data.signed_pdf_url });
+      console.log("[sign] full response:", JSON.stringify(data, null, 2));
+      console.log("[sign] PDF Status:", data.pdf_status);
+      console.log("[sign] signed_pdf_url:", data.signed_pdf_url);
+
+      // TODO: Remove this alert once PDF generation is confirmed working
+      alert(`PDF Status: ${data.pdf_status}\n\nPDF URL: ${data.signed_pdf_url || "none"}`);
 
       if (!res.ok) {
         console.error("[sign] API error:", data);
@@ -122,11 +127,10 @@ export default function SignatureSection({ proposalId, clientName, clientEmail }
         return;
       }
 
-      // Redirect to Stripe checkout if URL is returned
-      if (data.checkout_url) {
-        window.location.href = data.checkout_url;
-      }
-      // Otherwise stay in signed state
+      // TODO: Re-enable Stripe redirect once PDF generation is confirmed
+      // if (data.checkout_url) {
+      //   window.location.href = data.checkout_url;
+      // }
     } catch (error) {
       console.error("[sign] network error:", error);
       setIsSigned(false);
