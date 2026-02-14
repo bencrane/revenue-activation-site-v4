@@ -162,6 +162,7 @@ export default async function ProposalPage({
             <SignatureSection
               proposalId={proposal_id}
               clientName={proposal.client_name}
+              clientEmail={proposal.client_email}
             />
           )}
 

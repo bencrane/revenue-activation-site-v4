@@ -6,13 +6,15 @@ import SignaturePad from "signature_pad";
 interface SignatureSectionProps {
   proposalId: string;
   clientName: string;
+  clientEmail: string;
 }
 
-export default function SignatureSection({ proposalId, clientName }: SignatureSectionProps) {
+export default function SignatureSection({ proposalId, clientName, clientEmail }: SignatureSectionProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const signaturePadRef = useRef<SignaturePad | null>(null);
   const [isEmpty, setIsEmpty] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSigned, setIsSigned] = useState(false);
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -52,9 +54,19 @@ export default function SignatureSection({ proposalId, clientName }: SignatureSe
 
     setIsSubmitting(true);
 
-    try {
-      const signatureData = signaturePadRef.current.toDataURL("image/png");
+    // Capture signature data BEFORE any state changes
+    const signatureData = signaturePadRef.current.toDataURL("image/png");
 
+    // Update UI to signed state before capturing HTML
+    setIsSigned(true);
+
+    // Wait for React to render the signed state
+    await new Promise(resolve => setTimeout(resolve, 150));
+
+    // Capture HTML with signed state visible
+    const signedHtml = document.documentElement.outerHTML;
+
+    try {
       const res = await fetch(
         `https://api.serviceengine.xyz/api/public/proposals/${proposalId}/sign`,
         {
@@ -64,21 +76,60 @@ export default function SignatureSection({ proposalId, clientName }: SignatureSe
           },
           body: JSON.stringify({
             signature: signatureData,
+            signer_name: clientName,
+            signer_email: clientEmail,
+            signed_html: signedHtml,
           }),
         }
       );
 
-      if (res.ok) {
-        window.location.reload();
-      } else {
+      if (!res.ok) {
+        setIsSigned(false);
+        setIsSubmitting(false);
         alert("Failed to sign. Please try again.");
+        return;
       }
-    } catch {
-      alert("Failed to sign. Please try again.");
-    } finally {
+
+      const data = await res.json();
+      console.log("Sign response:", data);
+
+      // Redirect to Stripe checkout if URL is returned
+      if (data.checkout_url) {
+        window.location.href = data.checkout_url;
+      }
+      // Otherwise stay in signed state
+    } catch (error) {
+      console.error("Signing error:", error);
+      setIsSigned(false);
       setIsSubmitting(false);
+      alert("Failed to sign. Please try again.");
     }
   };
+
+  if (isSigned) {
+    return (
+      <div className="px-10 py-8 border-t border-[#1a1a1a] bg-green-500/5">
+        <div className="flex items-center gap-3">
+          <svg
+            className="w-5 h-5 text-green-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
+          <span className="text-green-500 text-sm">
+            Signed and accepted
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="px-10 py-8 border-t border-[#1a1a1a]">
